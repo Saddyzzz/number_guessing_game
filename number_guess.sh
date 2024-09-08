@@ -1,27 +1,35 @@
 #!/bin/bash
 
-# PSQL command to interact with the database
+#!/bin/bash
+
+# PSQL variable for querying the database
 PSQL="psql --username=freecodecamp --dbname=number_guess -t --no-align -c"
 
 # Prompt for the username
 echo "Enter your username:"
 read USERNAME
 
-# Check if the user exists in the database
+# Check if the username exists in the database
 USER_INFO=$($PSQL "SELECT user_id, username, games_played, best_game FROM users WHERE username='$USERNAME'")
 
-# If user exists
+# If the user exists
 if [[ -n $USER_INFO ]]
 then
-  # Parse user info
+  # Parse user information from the database
   IFS="|" read USER_ID DB_USERNAME GAMES_PLAYED BEST_GAME <<< "$USER_INFO"
+  
+  # If the user has played games before, print their stats
   echo "Welcome back, $DB_USERNAME! You have played $GAMES_PLAYED games, and your best game took $BEST_GAME guesses."
 else
-  # If user doesn't exist, insert into users table
+  # If the user is new, insert them into the database and welcome them
   INSERT_USER_RESULT=$($PSQL "INSERT INTO users(username) VALUES('$USERNAME')")
+  
   echo "Welcome, $USERNAME! It looks like this is your first time here."
-  # Get new user info
+  
+  # Get the new user ID after insertion
   USER_ID=$($PSQL "SELECT user_id FROM users WHERE username='$USERNAME'")
+  
+  # Initialize games played and best game for the new user
   GAMES_PLAYED=0
   BEST_GAME=null
 fi
